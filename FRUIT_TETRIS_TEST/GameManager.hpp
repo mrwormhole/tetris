@@ -12,12 +12,14 @@ private:
 	int i = -2; //iterator value of the created block
 	int pointerForCheckingBelow = 0; //pointer of the created block
 	bool permission; //To determine when the new block is needed
+	int score;
 
 public:
-	//Delete this parameter and see how it crashes like idiotic
+	Music sceneMusic;
 	GameManager() {
 		clearTempCMatrix();
 		clearCMatrix();
+		startMusic();
 	}
 
 	//utilities start here
@@ -84,6 +86,19 @@ public:
 	bool askPermissionForNewBlock() {
 		return permission;
 	}
+
+	void startMusic() {
+		if (!sceneMusic.openFromFile("../Sounds/letTheGamesBegin.ogg")) {
+			cout << "error";
+		}
+		sceneMusic.setVolume(80);
+		sceneMusic.setLoop(true);
+		sceneMusic.play();
+	}
+
+	int getScore() {
+		return score;
+	}
 	//utilities end here
 
 	void getNewBlockValuesForCMatrix(BlockCreator &a) {
@@ -136,21 +151,50 @@ public:
 		}
 	}
 
-	/*
-	///Match 3 algorihm
-	void processCMatrix() {
-		//horizontal [22][10]
+	///Match algorihm
+	void processCMatrix(RenderWindow &r) {
+		int n = 1;
+		int m = 1;
+		//horizontal
 		for (int i = 0; i < 22;i++) {
 			for (int j = 1; j < 10; j++) {
-
+				if (collision_matrix[i][j] == collision_matrix[i][j - 1] && collision_matrix[i][j] != 0) {
+					n += 1;
+				}
+				else if (n < 3) {
+					n = 1;
+				}
+				else if (n >= 3) {
+					for (int u = 1; u < n + 1; u++) {
+						collision_matrix[i][j - u] = 0;
+						makeInvisible(r, i, j - u);
+						score += n * 100;
+					}
+					n = 1;
+				}
+			}
+		}
+		//vertical
+		for (int j = 0; j < 10; j++) {
+			for (int i = 1; i < 22; i++) {
+				if (collision_matrix[i][j] == collision_matrix[i-1][j] && collision_matrix[i][j] != 0) {
+					m += 1;
+				}
+				else if (m < 3) {
+					m = 1;
+				}
+				else if (m >= 3) {
+					for (int u = 1; u < m + 1; u++) {
+						collision_matrix[i-u][j] = 0;
+						makeInvisible(r, i - u, j);
+						score += m * 100;
+					}
+					m = 1;
+				}
 			}
 		}
 
-
-
-		//vertical
-
-	}*/
+	}
 
 	void movePartsDownOnCMatrix() {
 		//move the block values down
@@ -174,6 +218,24 @@ public:
 		fruitRandomNumsINCREMENTED_M_VALUES[1] = fruitRandomNumsINCREMENTED_M_VALUES[0];
 		// 2 -> 0
 		fruitRandomNumsINCREMENTED_M_VALUES[0] = temp;
+	}
+
+	//WRONG APPROACH
+	void makeInvisible(RenderWindow &r , int i , int j) {
+		RectangleShape blackObj(Vector2f(31.0f, 31.0f));
+		blackObj.setPosition(Vector2f(45.0f + (j * 32), 1.0f + (i * 32)));
+		blackObj.setFillColor(Color(255, 0, 0, 255));
+		r.draw(blackObj);
+	}
+	//WRONG APPROACH
+	void make0MatrixValuesInvisible(RenderWindow &r) {
+		for (int i = 0; i < 22; i++) {
+			for (int j = 0; j < 10; j++) {
+				if (collision_matrix[i][j] = 0) {
+					makeInvisible(r, i, j);
+				}
+			}
+		}
 	}
 };
 

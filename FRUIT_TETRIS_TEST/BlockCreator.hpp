@@ -22,12 +22,7 @@ private:
 
 public:
 	BlockCreator() {
-		blocks.assign(100,b);
-		for (int c = 0; c < 100; c++) {
-			for (int i = 0; i < 3; i++) {
-				blocks[c].randomNums[i] = 0;
-			}
-		}
+		blocks.assign(100,b); 
 		allFruitsTexture.loadFromFile("../Images/fruits.png");
 		Vector2u textureSize = allFruitsTexture.getSize();
 		textureSize.x /= 4;
@@ -47,11 +42,11 @@ public:
 	}
 
 public:
-	void drawBlocks(RenderWindow& a) {
+	void drawBlocks(RenderWindow& r) {
 		for (int o = 0; o < 1 + currentBlockNumber; o++) {
-			a.draw(blocks[o].fruitObjs[0]); //bottom
-			a.draw(blocks[o].fruitObjs[1]); //mid 
-			a.draw(blocks[o].fruitObjs[2]); //top	
+			r.draw(blocks[o].fruitObjs[0]); //bottom
+			r.draw(blocks[o].fruitObjs[1]); //mid 
+			r.draw(blocks[o].fruitObjs[2]); //top	
 		}
 	}
 
@@ -169,7 +164,7 @@ public:
 	}
 
 	void setTimeNormal(float &d) {
-		d = 0.4f * 2;
+		d = 0.4f;
 	}
 
 	void incrementBlockNumber() {

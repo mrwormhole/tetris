@@ -1,11 +1,19 @@
 #include <SFML\Graphics.hpp>
-//#include <SFML\Audio.hpp>
+#include <SFML\Audio.hpp>
 #include <iostream>
 #include "BlockCreator.hpp"
 #include "GameManager.hpp"
 
 using namespace std;
 using namespace sf;
+
+/*
+Few honest words from a programmer;
+I NEED TO SOMEHOW MERGE THE METHODS IN BLOCKCREATOR AND GAMEMANAGER
+Tick method from blockcreator and IterateBlockValuesOnCMatrix are doing the same function
+Why do i need to merge them?Because i want to not draw when Matrix value of the block gets 0
+This totally sucks i created a matrix where i don't have full control over it.Dammit it looks like an useless map.I wanna kill myself
+*/
 
 void drawGrid(RenderWindow& window) {
 	RectangleShape line(Vector2f(1.0f, 704.0f));
@@ -37,7 +45,7 @@ int main() {
 	_gameManager.getNewBlockValuesForCMatrix(_blockCreator);
 
 	float timer = 0.0f;
-	float delay = 0.4f * 2;
+	float delay = 0.4f;
 	Clock clock;
 
 	while (window.isOpen()) {
@@ -80,6 +88,9 @@ int main() {
 				if (_event.key.code == Keyboard::S && _gameManager.checkBelow()) {
 					delay = 0.0f;
 				}
+				if (_event.key.code == Keyboard::Q && _gameManager.checkBelow()) {
+					delay = 1000.0f;
+				}
 			}
 		}
 
@@ -95,6 +106,7 @@ int main() {
 
 			if ( _gameManager.askPermissionForNewBlock()) {
 				_gameManager.addTempCMatrixToCMatrix(); 
+				//_gameManager.processCMatrix(window);
 				_blockCreator.incrementBlockNumber(); 
 				_blockCreator.setTimeNormal(delay); 
 				_blockCreator.createBlock(); 
@@ -106,6 +118,9 @@ int main() {
 		window.clear();
 		drawGrid(window);
 		_blockCreator.drawBlocks(window);
+		_gameManager.processCMatrix(window);
+		//_gameManager.makeInvisible(window, 20, 5);
+		//_gameManager.makeInvisible(window, 21, 5); //we should draw after drawing blocks to cover it
 		window.display();
 	}
 	
