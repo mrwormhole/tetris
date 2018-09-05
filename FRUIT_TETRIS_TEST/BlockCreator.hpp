@@ -22,7 +22,7 @@ private:
 
 public:
 	BlockCreator() {
-		blocks.assign(100,b); 
+		blocks.assign(100, b);
 		allFruitsTexture.loadFromFile("../Images/fruits.png");
 		Vector2u textureSize = allFruitsTexture.getSize();
 		textureSize.x /= 4;
@@ -43,7 +43,7 @@ public:
 
 public:
 	void drawBlocks(RenderWindow& r) {
-		for (int o = 0; o < 1 + currentBlockNumber; o++) {
+		for (int o = 1; o < 1 + currentBlockNumber; o++) {
 			r.draw(blocks[o].fruitObjs[0]); //bottom
 			r.draw(blocks[o].fruitObjs[1]); //mid 
 			r.draw(blocks[o].fruitObjs[2]); //top	
@@ -51,6 +51,7 @@ public:
 	}
 
 	void createBlock() {
+		currentBlockNumber++;
 		int index0 = (rand() % 10) % 7;
 		int index1 = (rand() % 10) % 7;
 		int index2 = (rand() % 10) % 7;
@@ -59,8 +60,8 @@ public:
 			index1 = (rand() % 10) % 7;
 			index2 = (rand() % 10) % 7;
 		}
-		blocks[currentBlockNumber].randomNums[0] = index0;	
-		blocks[currentBlockNumber].randomNums[1] = index1; 
+		blocks[currentBlockNumber].randomNums[0] = index0;
+		blocks[currentBlockNumber].randomNums[1] = index1;
 		blocks[currentBlockNumber].randomNums[2] = index2;
 		j = rand() % 10;
 		for (int k = 0; k < 3; k++) {
@@ -70,9 +71,11 @@ public:
 			fruitObj.setTextureRect(IntRect(fruits[blocks[currentBlockNumber].randomNums[k]]));
 			blocks[currentBlockNumber].fruitObjs[k] = fruitObj;
 		}
+		
 	}
 
 	void moveBlockLeft() {
+		changeJ("dec");
 		if (blocks[currentBlockNumber].fruitObjs[0].getPosition().x > 44 + 1) {
 			for (int o = 0; o < 3; o++) {
 				Vector2f tempPos = blocks[currentBlockNumber].fruitObjs[o].getPosition();
@@ -83,6 +86,7 @@ public:
 	}
 
 	void moveBlockRight() {
+		changeJ("inc");
 		if (blocks[currentBlockNumber].fruitObjs[0].getPosition().x < 332 - 1) {
 			for (int o = 0; o < 3; o++) {
 				Vector2f tempPos = blocks[currentBlockNumber].fruitObjs[o].getPosition();
@@ -128,7 +132,7 @@ public:
 		blocks[currentBlockNumber].fruitObjs[0] = temp;
 	}
 
-	void tick(float &d) {
+	void tick() { //for moving block down	
 		if (blocks[currentBlockNumber].fruitObjs[0].getPosition().y < 672 - 1) {
 			for (int o = 0; o < 3; o++) {
 				Vector2f tempPos = blocks[currentBlockNumber].fruitObjs[o].getPosition();
@@ -147,28 +151,21 @@ public:
 		return blocks[currentBlockNumber].randomNums;
 	}
 
-	void decrementJ() {
-		if (j != 0) {
-			j--;
+	void changeJ(string a) {
+		if (a == "inc" && j != 9) {
+			j++; //inc
 		}
-	}
-
-	void incrementJ() {
-		if (j != 9) {
-			j++;
+		else if (a == "dec" && j != 0) {
+			j--; //dec
 		}
 	}
 
 	int getJ() {
-		return j;
-	}
-
-	void setTimeNormal(float &d) {
-		d = 0.4f;
+		return j; //for controller
 	}
 
 	void incrementBlockNumber() {
-		currentBlockNumber++;
+		currentBlockNumber++; //for spawning
 	}
 	//utilities end here
 };

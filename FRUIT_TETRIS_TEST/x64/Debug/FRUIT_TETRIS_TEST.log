@@ -1,1 +1,3 @@
-﻿sfml-graphics-d.lib(sfml-graphics-d-2.dll) : fatal error LNK1112: module machine type 'X86' conflicts with target machine type 'x64'
+﻿  main.cpp
+c:\users\toshiba\documents\visual studio 2015\projects\fruit_tetris_test\fruit_tetris_test\main.cpp(37): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+sfml-graphics-d.lib(sfml-graphics-d-2.dll) : fatal error LNK1112: module machine type 'X86' conflicts with target machine type 'x64'
