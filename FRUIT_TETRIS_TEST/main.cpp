@@ -7,7 +7,7 @@
 using namespace std;
 using namespace sf;
 
-//3 recent bugs(1 major bug,1 minor bug)
+//3 recent bugs(1 major bug,2 minor bugs)
 //major bug: sprites don't show correctly [Couldn't find a proper way to destroy old blocks' sprites]
 //minor bug: process doesn't work on CMatrix[21][9],CMatrix[21][8],CMatrix[21][7] (algorithm defect)
 //minor bug: A and D keys can ruin CMatrix if they touch other blocks so fast from horizantal side (timer or keyboard buffer defect)
