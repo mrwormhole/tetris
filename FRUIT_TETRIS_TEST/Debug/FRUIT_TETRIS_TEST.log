@@ -1,4 +1,0 @@
-﻿  main.cpp
-c:\users\toshiba\documents\visual studio 2015\projects\fruit_tetris_test\fruit_tetris_test\main.cpp(16): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-  FRUIT_TETRIS_TEST.vcxproj -> C:\Users\Toshiba\Documents\Visual Studio 2015\Projects\FRUIT_TETRIS_TEST\Debug\FRUIT_TETRIS_TEST.exe
-  FRUIT_TETRIS_TEST.vcxproj -> C:\Users\Toshiba\Documents\Visual Studio 2015\Projects\FRUIT_TETRIS_TEST\Debug\FRUIT_TETRIS_TEST.pdb (Full PDB)
