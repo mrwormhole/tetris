@@ -5,6 +5,8 @@
 #include <cassert>
 
 #include <SDL.h>
+#include "Color.h"
+#include "Tetromino.h"
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -18,116 +20,6 @@ typedef double f64;
 #define HEIGHT 22
 #define VISIBLE_HEIGHT 20
 #define GRID_SIZE 30
-
-//Color.h
-struct Color
-{
-	u8 r;
-	u8 g;
-	u8 b;
-	u8 a;
-};
-
-inline Color color(u8 r, u8 g, u8 b, u8 a) {
-	return Color{r,g,b,a};
-}
-
-const Color BASE_COLORS[] = {
-	color(0x28, 0x28, 0x28, 0xFF),
-	color(0x2D, 0x99, 0x99, 0xFF),
-	color(0x99, 0x99, 0x2D, 0xFF),
-	color(0x99, 0x2D, 0x99, 0xFF),
-	color(0x2D, 0x99, 0x51, 0xFF),
-	color(0x99, 0x2D, 0x2D, 0xFF),
-	color(0x2D, 0x63, 0x99, 0xFF),
-	color(0x99, 0x63, 0x2D, 0xFF)
-};
-
-const Color LIGHT_COLORS[] = {
-	color(0x28, 0x28, 0x28, 0xFF),
-	color(0x44, 0xE5, 0xE5, 0xFF),
-	color(0xE5, 0xE5, 0x44, 0xFF),
-	color(0xE5, 0x44, 0xE5, 0xFF),
-	color(0x44, 0xE5, 0x7A, 0xFF),
-	color(0xE5, 0x44, 0x44, 0xFF),
-	color(0x44, 0x95, 0xE5, 0xFF),
-	color(0xE5, 0x95, 0x44, 0xFF)
-};
-
-const Color DARK_COLORS[] = {
-	color(0x28, 0x28, 0x28, 0xFF),
-	color(0x1E, 0x66, 0x66, 0xFF),
-	color(0x66, 0x66, 0x1E, 0xFF),
-	color(0x66, 0x1E, 0x66, 0xFF),
-	color(0x1E, 0x66, 0x36, 0xFF),
-	color(0x66, 0x1E, 0x1E, 0xFF),
-	color(0x1E, 0x42, 0x66, 0xFF),
-	color(0x66, 0x42, 0x1E, 0xFF)
-};
-//Color.h
-
-//Tetromino.h
-struct Tetromino {
-	const u8 *data;
-	const s32 side;
-};
-
-inline Tetromino tetromino(const u8 *data, s32 side) {
-	return Tetromino{ data ,side };
-}
-
-const u8 TETROMINO_1[] = {
-	0,0,0,0,
-	1,1,1,1,
-	0,0,0,0,
-	0,0,0,0
-};
-
-const u8 TETROMINO_2[] = {
-	2,2,
-	2,2
-};
-
-const u8 TETROMINO_3[] = {
-	0,3,0,
-	3,3,3,
-	0,0,0
-};
-
-const u8 TETROMINO_4[] = {
-	0,4,4,
-	4,4,0,
-	0,0,0
-};
-
-const u8 TETROMINO_5[] = {
-	5,5,0,
-	0,5,5,
-	0,0,0
-};
-
-const u8 TETROMINO_6[] = {
-	6,0,0,
-	6,6,6,
-	0,0,0
-};
-
-const u8 TETROMINO_7[] = {
-	0,0,7,
-	7,7,7,
-	0,0,0
-};
-
-const Tetromino TETROMINOS[] = {
-	tetromino(TETROMINO_1,4),
-	tetromino(TETROMINO_2,2),
-	tetromino(TETROMINO_3,3),
-	tetromino(TETROMINO_4,3),
-	tetromino(TETROMINO_5,3),
-	tetromino(TETROMINO_6,3),
-	tetromino(TETROMINO_7,3),
-};
-//Tetromino.h
 
 enum GamePhase {
 	GAME_PHASE_PLAY

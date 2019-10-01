@@ -154,7 +154,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Color.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Tetromino.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tetris.cpp" />
