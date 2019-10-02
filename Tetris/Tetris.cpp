@@ -21,6 +21,8 @@ typedef double f64;
 #define VISIBLE_HEIGHT 20
 #define GRID_SIZE 30
 
+const u8 FRAMES_PER_DROP[] = { 48,43,38,33,28,23,18,13,8,6,5,5,5,4,4,4,3,3,3,2,2,2,2,2,2,2,2,2,1 };
+
 enum GamePhase {
 	GAME_PHASE_PLAY
 };
@@ -36,16 +38,25 @@ struct GameState {
 	u8 board[WIDTH * HEIGHT];
 	PieceState piece;
 	GamePhase phase;
+
+	s32 level;
+
+	f32 next_drop_time;
+	f32 time;
 };
 
 struct InputState {
 	u8 left;
 	u8 right;
 	u8 up;
+	u8 down;
+	u8 space;
 
 	s8 dleft;
 	s8 dright;
 	s8 dup;
+	s8 ddown;
+	s8 dspace;
 };
 
 inline u8 matrix_get(const u8 *values, s32 width, s32 row, s32 col) {
@@ -115,16 +126,37 @@ void merge_piece(GameState *game) {
 void spawn_piece(GameState *game) {
 	game->piece = {};
 
+	game->piece.tetromino_index = rand() % 6;
 	game->piece.offset_col = WIDTH / 2 - 1* WIDTH/4;
 }
 
-void soft_drop(GameState *game) {
+inline f32 get_time_to_next_drop(s32 level) {
+	
+	if (level > 29) {
+		level = 29;
+	}
+
+	return FRAMES_PER_DROP[level] * (1.0/60.0f); //FRAMES_PER_DROP * TARGET_SECONDS_PER_FRAME
+}
+
+inline bool soft_drop(GameState *game) {
 	game->piece.offset_row++;
-	if (check_piece_valid(&game->piece, game->board, WIDTH, HEIGHT)) {
+	if (!check_piece_valid(&game->piece, game->board, WIDTH, HEIGHT)) {
 		game->piece.offset_row--;
 		merge_piece(game);
 		spawn_piece(game);
+		return false;
 	}
+
+	game->next_drop_time = game->time + get_time_to_next_drop(game->level);
+	return true;
+}
+
+void hard_drop(GameState *game) {
+	bool isPossible = NULL;
+	do {
+		isPossible = soft_drop(game);
+	} while (isPossible);
 }
 
 void update_gameplay(GameState *game, const InputState *input) {
@@ -141,6 +173,18 @@ void update_gameplay(GameState *game, const InputState *input) {
 
 	if (check_piece_valid(&piece, game->board, WIDTH, HEIGHT )) {
 		game->piece = piece;
+	}
+
+	if (input->ddown > 0) {
+		soft_drop(game);
+	}
+
+	if (input->dspace > 0) {
+		hard_drop(game);
+	}
+
+	while (game->time > game->next_drop_time) {
+		soft_drop(game);
 	}
 }
 
@@ -219,6 +263,8 @@ int main(int argc, char* argv[])
 
 	bool quit = false;
 	while (!quit) {
+		game.time = SDL_GetTicks() / 1000.0f;
+
 		SDL_Event event;
 		while (SDL_PollEvent(&event) != 0) {
 			if (event.type == SDL_QUIT) {
@@ -226,20 +272,25 @@ int main(int argc, char* argv[])
 			}
 		}
 
-
 		//check if any key pressed
 		s32 key_count;
 		const Uint8 *key_states = SDL_GetKeyboardState(&key_count);
+
+		if (key_states[SDL_SCANCODE_ESCAPE]) { quit = true; }
 
 		InputState previous_input = input;
 
 		input.left = key_states[SDL_SCANCODE_LEFT];
 		input.right = key_states[SDL_SCANCODE_RIGHT];
 		input.up = key_states[SDL_SCANCODE_UP];
+		input.down = key_states[SDL_SCANCODE_DOWN];
+		input.space = key_states[SDL_SCANCODE_SPACE];
 
 		input.dleft = input.left - previous_input.left;
 		input.dright = input.right - previous_input.right;
 		input.dup = input.up - previous_input.up;
+		input.ddown = input.down - previous_input.down;
+		input.dspace = input.space - previous_input.space;
 		//check if any key pressed
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);

@@ -1,2 +1,3 @@
 ﻿  Tetris.cpp
+c:\users\toshiba\source\repos\tetris\tetris\tetris.cpp(139): warning C4244: 'return': conversion from 'double' to 'f32', possible loss of data
   Tetris.vcxproj -> C:\Users\Toshiba\source\repos\Tetris\Debug\Tetris.exe

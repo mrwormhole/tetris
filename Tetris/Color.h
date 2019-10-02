@@ -7,10 +7,10 @@ typedef uint8_t u8;
 
 struct Color
 {
-	u8 r;
-	u8 g;
-	u8 b;
-	u8 a;
+	const u8 r;
+	const u8 g;
+	const u8 b;
+	const u8 a;
 };
 
 inline Color color(u8 r, u8 g, u8 b, u8 a) {
