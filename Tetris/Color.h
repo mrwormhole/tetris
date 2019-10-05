@@ -7,10 +7,10 @@ typedef uint8_t u8;
 
 struct Color
 {
-	const u8 r;
-	const u8 g;
-	const u8 b;
-	const u8 a;
+	const u8 red;
+	const u8 green;
+	const u8 blue;
+	const u8 alpha;
 };
 
 inline Color color(u8 r, u8 g, u8 b, u8 a) {
@@ -49,5 +49,7 @@ const Color DARK_COLORS[] = {
 	color(0x1E, 0x42, 0x66, 0xFF),
 	color(0x66, 0x42, 0x1E, 0xFF)
 };
+
+const Color highlightColor = color(0x28,0x28,0x28,0x99);
 
 #endif 

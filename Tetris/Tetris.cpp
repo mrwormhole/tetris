@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
+#include <cmath>
 
 #include <SDL.h>
 #include "Color.h"
@@ -29,9 +30,9 @@ enum GamePhase {
 };
 
 struct PieceState {
-	u8 tetromino_index;
-	s32 offset_row;
-	s32 offset_col;
+	u8 tetrominoIndex;
+	s32 offsetRow;
+	s32 offsetCol;
 	s32 rotation;
 };
 
@@ -42,6 +43,7 @@ struct GameState {
 	PieceState piece;
 	GamePhase phase;
 
+	s32 start_level;
 	s32 level;
 	s32 line_count;
 	u8 pending_line_count;
@@ -74,6 +76,18 @@ inline u8 getMatrixValue(const u8 *values, s32 width, s32 row, s32 col) {
 inline void setMatrixValue(u8 *values, s32 width, s32 row, s32 col, u8 value) {
 	s32 index = row * width + col;
 	values[index] = value;
+}
+
+inline void printMatrixValues(u8* values, s32 width,s32 height) {
+	printf("\n");
+	for (s32 row = 0; row < height; row++) {
+		for (s32 col = 0; col < width; col++) {
+			s32 index = row * width + col;
+			printf("%d ", values[index]);
+		}
+		printf("\n");
+	}
+	printf("\n");
 }
 
 inline u8 getTetromino(const Tetromino *tetromino, s32 row, s32 col, s32 rotation) {
@@ -115,32 +129,33 @@ inline u8 findLines(const u8 *values, s32 width, s32 height, u8 *lines_out) {
 void clearLines(u8 *values, s32 width, s32 height, const u8 *lines) {
 	s32 src_row = height - 1;
 	for (s32 dest_row = height - 1; dest_row >= 0; dest_row--) {
+		// check upper blocks
 		while (src_row >= 0 && lines[src_row]) {
 			src_row--;
 		}
 
 		if (src_row < 0) {
-			memset(values + dest_row * width, 0, width);
+			memset(values + dest_row * width, 0, width); // in the end, fulfill the last destination cursor with empty
 		}
 		else {
 			if (src_row != dest_row) {
-				memcpy(values + dest_row * width, values + src_row * width, width);
+				memcpy(values + dest_row * width, values + src_row * width, width); // move it from source cursor to destination cursor
 			}
 			src_row--;
 		}
 	}
 }
 
-bool check_piece_valid(const PieceState *piece, const u8 *board, s32 width, s32 height) {
-	const Tetromino *tetromino = TETROMINOS + piece->tetromino_index;
+bool isPieceValid(const PieceState *piece, const u8 *board, s32 width, s32 height) {
+	const Tetromino *tetromino = TETROMINOS + piece->tetrominoIndex;
 	assert(tetromino != NULL);
 
 	for (s32 row = 0; row < tetromino->side; row++) {
 		for (s32 col = 0; col < tetromino->side; col++) {
 			u8 value = getTetromino(tetromino, row, col, piece->rotation);
 			if (value > 0) {
-				s32 board_row = piece->offset_row + row;
-				s32 board_col = piece->offset_col + col;
+				s32 board_row = piece->offsetRow + row;
+				s32 board_col = piece->offsetCol + col;
 				if (board_row < 0 || board_row >= height || board_col < 0 || board_col >= width) {
 					return false;
 				}
@@ -153,14 +168,14 @@ bool check_piece_valid(const PieceState *piece, const u8 *board, s32 width, s32 
 	return true;
 }
 
-void merge_piece(GameState *game) {
-	const Tetromino *tetromino = TETROMINOS + game->piece.tetromino_index;
+void mergePiece(GameState *game) {
+	const Tetromino *tetromino = TETROMINOS + game->piece.tetrominoIndex;
 	for (s32 row = 0; row < tetromino->side; row++) {
 		for (s32 col = 0; col < tetromino->side; col++) {
 			u8 value = getTetromino(tetromino, row, col, game->piece.rotation);
 			if (value) {
-				s32 board_row = game->piece.offset_row + row;
-				s32 board_col = game->piece.offset_col + col;
+				s32 board_row = game->piece.offsetRow + row;
+				s32 board_col = game->piece.offsetCol + col;
 				// we assume everything is in bounds
 				setMatrixValue(game->board, WIDTH, board_row, board_col, value);
 			}
@@ -168,11 +183,11 @@ void merge_piece(GameState *game) {
 	}
 }
 
-void spawn_piece(GameState *game) {
+void spawnPiece(GameState *game) {
 	game->piece = {};
 
-	game->piece.tetromino_index = rand() % 6;
-	game->piece.offset_col = WIDTH / 2 - 1* WIDTH/4;
+	game->piece.tetrominoIndex = rand() % 6;
+	game->piece.offsetCol = WIDTH / 2 - 1* WIDTH/4;
 }
 
 inline f32 get_time_to_next_drop(s32 level) {
@@ -184,12 +199,20 @@ inline f32 get_time_to_next_drop(s32 level) {
 	return FRAMES_PER_DROP[level] * (1.0/60.0f); //FRAMES_PER_DROP * TARGET_SECONDS_PER_FRAME
 }
 
-inline bool soft_drop(GameState *game) {
-	game->piece.offset_row++;
-	if (!check_piece_valid(&game->piece, game->board, WIDTH, HEIGHT)) {
-		game->piece.offset_row--;
-		merge_piece(game);
-		spawn_piece(game);
+inline s32 get_lines_for_next_level(s32 start_level, s32 level) {
+	s32 first_level_up_limit = fmin(start_level * 10 + 10, fmax(100, start_level * 10 - 50));
+	if (level == start_level) { return first_level_up_limit; }
+
+	s32 diff = level - start_level;
+	return first_level_up_limit + diff * 10;
+}
+
+inline bool softDrop(GameState *game) {
+	game->piece.offsetRow++;
+	if (!isPieceValid(&game->piece, game->board, WIDTH, HEIGHT)) {
+		game->piece.offsetRow--;
+		mergePiece(game);
+		spawnPiece(game);
 		return false;
 	}
 
@@ -197,14 +220,14 @@ inline bool soft_drop(GameState *game) {
 	return true;
 }
 
-void hard_drop(GameState *game) {
+void hardDrop(GameState *game) {
 	bool isPossible = NULL;
 	do {
-		isPossible = soft_drop(game);
+		isPossible = softDrop(game);
 	} while (isPossible);
 }
 
-inline s32 get_score(s32 level, s32 line_count) {
+inline s32 getScore(s32 level, s32 line_count) {
 	switch (line_count) {
 	case 1:
 		return 40 * (level + 1);
@@ -222,70 +245,75 @@ inline s32 get_score(s32 level, s32 line_count) {
 	return 0;
 }
 
-void update_gameline(GameState *game) {
+void updateGameline(GameState *game) {
 	if (game->time >= game->highlight_end_time) {
 		clearLines(game->board, WIDTH, HEIGHT, game->lines);
 		game->line_count += game->pending_line_count;
-		game->score += get_score(game->level, game->pending_line_count);
+		game->score += getScore(game->level, game->pending_line_count);
+		s32 lines_for_next_level = get_lines_for_next_level(game->start_level, game->level);
+
+		if (game->line_count >= lines_for_next_level) {
+			game->level++;
+		}
+
 		game->phase = GAME_PHASE_PLAY;
 	}
 }
 
-void update_gameplay(GameState *game, const InputState *input) {
+void updateGameplay(GameState *game, const InputState *input) {
 	PieceState piece = game->piece;
 	if (input->directionLeft > 0) {
-		piece.offset_col--;
+		piece.offsetCol--;
 	}
 	if (input->directionRight > 0) {
-		piece.offset_col++;
+		piece.offsetCol++;
 	}
 	if (input->directionUp > 0) {
 		piece.rotation = (piece.rotation + 1) % 4;
 	}
 
-	if (check_piece_valid(&piece, game->board, WIDTH, HEIGHT )) {
+	if (isPieceValid(&piece, game->board, WIDTH, HEIGHT )) {
 		game->piece = piece;
 	}
 
 	if (input->directionDown > 0) {
-		soft_drop(game);
+		softDrop(game);
 	}
 
 	if (input->directionSpace > 0) {
-		hard_drop(game);
+		hardDrop(game);
 	}
 
 	while (game->time > game->next_drop_time) {
-		soft_drop(game);
+		softDrop(game);
 	}
 
 	game->pending_line_count = findLines(game->board, WIDTH, HEIGHT, game->lines);
 	if (game->pending_line_count > 0) {
 		game->phase = GAME_PHASE_LINE;
-		game->highlight_end_time = game->time + 0.5f;
+		game->highlight_end_time = game->time + 0.8f;
 	}
+	
 }
 
-void update_game(GameState *game, const InputState *input) {
+void updateGame(GameState *game, const InputState *input) {
 	switch (game->phase) {
 	case GAME_PHASE_PLAY:
-		update_gameplay(game, input);
+		updateGameplay(game, input);
 		break;
 	case GAME_PHASE_LINE:
-		update_gameline(game);
+		updateGameline(game);
 		break;
 	}
 }
 
-static bool once = true;
-
-void fill_rect(SDL_Renderer *renderer, s32 x, s32 y, s32 width, s32 height, Color color) {
+void fillRect(SDL_Renderer *renderer, s32 x, s32 y, s32 width, s32 height, Color color) {
 	SDL_Rect rect = {x,y,width,height};
-	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+	SDL_SetRenderDrawColor(renderer, color.red, color.green, color.blue, color.alpha);
 	SDL_RenderFillRect(renderer, &rect);
 }
 
-void draw_cell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x, s32 offset_y) {
+void drawCell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x, s32 offset_y) {
 	Color base_color = BASE_COLORS[value];
 	Color light_color = LIGHT_COLORS[value];
 	Color dark_color = DARK_COLORS[value];
@@ -294,42 +322,75 @@ void draw_cell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x,
 	s32 x = col * GRID_SIZE + offset_x;
 	s32 y = row * GRID_SIZE + offset_y;
 
-	fill_rect(renderer, x, y, GRID_SIZE, GRID_SIZE, dark_color);
-	fill_rect(renderer, x + edge, y, GRID_SIZE -edge, GRID_SIZE -edge, light_color);
-	fill_rect(renderer, x + edge, y + edge, GRID_SIZE - edge * 2, GRID_SIZE - edge * 2, base_color);
+	fillRect(renderer, x, y, GRID_SIZE, GRID_SIZE, dark_color);
+	fillRect(renderer, x + edge, y, GRID_SIZE -edge, GRID_SIZE -edge, light_color);
+	fillRect(renderer, x + edge, y + edge, GRID_SIZE - edge * 2, GRID_SIZE - edge * 2, base_color);
 }
 
-void draw_piece(SDL_Renderer *renderer, const PieceState *piece, s32 offset_x, s32 offset_y) {
-	const Tetromino *tetromino = TETROMINOS + piece->tetromino_index;
+void drawPiece(SDL_Renderer *renderer, const PieceState *piece, s32 offset_x, s32 offset_y) {
+	const Tetromino *tetromino = TETROMINOS + piece->tetrominoIndex;
 	for (s32 row = 0; row < tetromino->side; row++) {
 		for (s32 col = 0; col < tetromino->side; col++) {
 			u8 value = getTetromino(tetromino, row, col, piece->rotation);
 			if (value) {
-				draw_cell(renderer, row + piece->offset_row, col + piece->offset_col, value, offset_x, offset_y);
+				drawCell(renderer, row + piece->offsetRow, col + piece->offsetCol, value, offset_x, offset_y);
 			}
 		}
 	}
 }
 
-void draw_board(SDL_Renderer *renderer, const u8 *board, s32 width, s32 height, s32 offset_x, s32 offset_y) {
+void drawBoard(SDL_Renderer *renderer, const u8 *board, s32 width, s32 height, s32 offset_x, s32 offset_y) {
 	for (s32 row = 0; row < height; row++) {
 		for (s32 col = 0; col < width; col++) {
 			u8 value = getMatrixValue(board,width,row,col);
 			if (value) {
-				draw_cell(renderer, row, col, value, offset_x, offset_y);
+				drawCell(renderer, row, col, value, offset_x, offset_y);
 			}
 		}
 	}
 }
 
-void render_game(const GameState *game, SDL_Renderer *renderer) {
-	draw_board(renderer, game->board, WIDTH, HEIGHT, 0, 0);
-	draw_piece(renderer, &game->piece, 0, 0);
+void renderGame(const GameState *game, SDL_Renderer *renderer) {
+	drawBoard(renderer, game->board, WIDTH, HEIGHT, 0, 0);
+	drawPiece(renderer, &game->piece, 0, 0);
+	
+	if (game->phase == GAME_PHASE_LINE) {
+		for (s32 row = 0; row < HEIGHT; row++) {
+			if (game->lines[row])
+			{
+				s32 x = 0;
+				s32 y = row * GRID_SIZE;
+				fillRect(renderer, x, y, WIDTH * GRID_SIZE, GRID_SIZE, highlightColor);
+			}
+		}
+	}
+}
+
+void registerKeyEvents(InputState *input, bool *quit_out) {
+	s32 key_count;
+	const Uint8 *keyStates = SDL_GetKeyboardState(&key_count);
+
+	if (keyStates[SDL_SCANCODE_ESCAPE]) { *quit_out = true; }
+
+	InputState previousInput = *input;
+
+	input->left = keyStates[SDL_SCANCODE_LEFT];
+	input->right = keyStates[SDL_SCANCODE_RIGHT];
+	input->up = keyStates[SDL_SCANCODE_UP];
+	input->down = keyStates[SDL_SCANCODE_DOWN];
+	input->space = keyStates[SDL_SCANCODE_SPACE];
+
+	input->directionLeft = input->left - previousInput.left;
+	input->directionRight = input->right - previousInput.right;
+	input->directionUp = input->up - previousInput.up;
+	input->directionDown = input->down - previousInput.down;
+	input->directionSpace = input->space - previousInput.space;
 }
 
 int main(int argc, char* argv[])
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		printf("SDL library initialization failed");
 		return 1;
 	}
 
@@ -339,8 +400,8 @@ int main(int argc, char* argv[])
 	GameState game = {};
 	InputState input = {};
 
-	spawn_piece(&game);
-	game.piece.tetromino_index = 0;
+	spawnPiece(&game);
+	game.piece.tetrominoIndex = 0;
 
 	bool quit = false;
 	while (!quit) {
@@ -353,32 +414,13 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		//check if any key pressed
-		s32 key_count;
-		const Uint8 *key_states = SDL_GetKeyboardState(&key_count);
-
-		if (key_states[SDL_SCANCODE_ESCAPE]) { quit = true; }
-
-		InputState previous_input = input;
-
-		input.left = key_states[SDL_SCANCODE_LEFT];
-		input.right = key_states[SDL_SCANCODE_RIGHT];
-		input.up = key_states[SDL_SCANCODE_UP];
-		input.down = key_states[SDL_SCANCODE_DOWN];
-		input.space = key_states[SDL_SCANCODE_SPACE];
-
-		input.directionLeft = input.left - previous_input.left;
-		input.directionRight = input.right - previous_input.right;
-		input.directionUp = input.up - previous_input.up;
-		input.directionDown = input.down - previous_input.down;
-		input.directionSpace = input.space - previous_input.space;
-		//check if any key pressed
+		registerKeyEvents(&input, &quit);
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 		SDL_RenderClear(renderer);
 
-		update_game(&game, &input);
-		render_game(&game,renderer);
+		updateGame(&game, &input);
+		renderGame(&game,renderer);
 
 		SDL_RenderPresent(renderer);
 	}
