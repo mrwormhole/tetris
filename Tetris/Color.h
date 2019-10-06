@@ -51,5 +51,6 @@ const Color DARK_COLORS[] = {
 };
 
 const Color highlightColor = color(0x28,0x28,0x28,0x99);
+const Color whiteColor = color(0xFF, 0xFF, 0xFF, 0xFF);
 
 #endif 

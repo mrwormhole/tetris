@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include <SDL.h>
+
 #include "Color.h"
 #include "Tetromino.h"
 
@@ -26,7 +27,8 @@ const u8 FRAMES_PER_DROP[] = { 48,43,38,33,28,23,18,13,8,6,5,5,5,4,4,4,3,3,3,2,2
 
 enum GamePhase {
 	GAME_PHASE_PLAY,
-	GAME_PHASE_LINE
+	GAME_PHASE_LINE,
+	GAME_PHASE_OVER
 };
 
 struct PieceState {
@@ -261,6 +263,9 @@ void updateGameline(GameState *game) {
 }
 
 void updateGameplay(GameState *game, const InputState *input) {
+	if (game->phase == GAME_PHASE_OVER) {
+		SDL_Log("yooooooooooooooooooooo");
+	}
 	PieceState piece = game->piece;
 	if (input->directionLeft > 0) {
 		piece.offsetCol--;
@@ -293,6 +298,12 @@ void updateGameplay(GameState *game, const InputState *input) {
 		game->phase = GAME_PHASE_LINE;
 		game->highlight_end_time = game->time + 0.8f;
 	}
+
+	s32 game_over_row = 0;
+	if (isRowFilled(game->board, WIDTH, game_over_row)) {
+		game->phase = GAME_PHASE_OVER;
+		SDL_Log("game overrrrrrrrrrrrrrrrrrr");
+	}
 	
 }
 
@@ -307,10 +318,15 @@ void updateGame(GameState *game, const InputState *input) {
 	}
 }
 
-void fillRect(SDL_Renderer *renderer, s32 x, s32 y, s32 width, s32 height, Color color) {
+void fillRect(SDL_Renderer *renderer, s32 x, s32 y, s32 width, s32 height, Color color, bool filled) {
 	SDL_Rect rect = {x,y,width,height};
 	SDL_SetRenderDrawColor(renderer, color.red, color.green, color.blue, color.alpha);
-	SDL_RenderFillRect(renderer, &rect);
+	if (filled) {
+		SDL_RenderFillRect(renderer, &rect);
+	}
+	else {
+		SDL_RenderDrawRect(renderer, &rect);
+	}
 }
 
 void drawCell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x, s32 offset_y) {
@@ -322,9 +338,9 @@ void drawCell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x, 
 	s32 x = col * GRID_SIZE + offset_x;
 	s32 y = row * GRID_SIZE + offset_y;
 
-	fillRect(renderer, x, y, GRID_SIZE, GRID_SIZE, dark_color);
-	fillRect(renderer, x + edge, y, GRID_SIZE -edge, GRID_SIZE -edge, light_color);
-	fillRect(renderer, x + edge, y + edge, GRID_SIZE - edge * 2, GRID_SIZE - edge * 2, base_color);
+	fillRect(renderer, x, y, GRID_SIZE, GRID_SIZE, dark_color, true);
+	fillRect(renderer, x + edge, y, GRID_SIZE -edge, GRID_SIZE -edge, light_color, true);
+	fillRect(renderer, x + edge, y + edge, GRID_SIZE - edge * 2, GRID_SIZE - edge * 2, base_color, true);
 }
 
 void drawPiece(SDL_Renderer *renderer, const PieceState *piece, s32 offset_x, s32 offset_y) {
@@ -353,16 +369,20 @@ void drawBoard(SDL_Renderer *renderer, const u8 *board, s32 width, s32 height, s
 void renderGame(const GameState *game, SDL_Renderer *renderer) {
 	drawBoard(renderer, game->board, WIDTH, HEIGHT, 0, 0);
 	drawPiece(renderer, &game->piece, 0, 0);
-	
+
 	if (game->phase == GAME_PHASE_LINE) {
 		for (s32 row = 0; row < HEIGHT; row++) {
 			if (game->lines[row])
 			{
 				s32 x = 0;
 				s32 y = row * GRID_SIZE;
-				fillRect(renderer, x, y, WIDTH * GRID_SIZE, GRID_SIZE, highlightColor);
+				fillRect(renderer, x, y, WIDTH * GRID_SIZE, GRID_SIZE, highlightColor, true);
+				fillRect(renderer, x, y, WIDTH* GRID_SIZE, GRID_SIZE, whiteColor, false);
 			}
 		}
+	}
+	else if (game->phase == GAME_PHASE_OVER) {
+
 	}
 }
 
