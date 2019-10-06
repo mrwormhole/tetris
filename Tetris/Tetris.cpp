@@ -26,6 +26,7 @@ typedef double f64;
 const u8 FRAMES_PER_DROP[] = { 48,43,38,33,28,23,18,13,8,6,5,5,5,4,4,4,3,3,3,2,2,2,2,2,2,2,2,2,1 };
 
 enum GamePhase {
+	GAME_PHASE_START,
 	GAME_PHASE_PLAY,
 	GAME_PHASE_LINE,
 	GAME_PHASE_OVER
@@ -110,12 +111,23 @@ inline u8 getTetromino(const Tetromino *tetromino, s32 row, s32 col, s32 rotatio
 }
 
 inline bool isRowFilled(const u8 *values, s32 width, s32 row) {
+	// checks if row has a gap, if yes return false, if not returns true
 	for (s32 col = 0; col < width; col++) {
 		if (!getMatrixValue(values, width, row, col)) {
 			return false;
 		}
 	}
 	return true;
+}
+
+inline bool isRowEmpty(const u8 *values, s32 width, s32 row) {
+	// checks if row has a cell, if yes return true if not returns false
+	for (s32 col = 0; col < width; col++) {
+		if (getMatrixValue(values, width, row, col)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 inline u8 findLines(const u8 *values, s32 width, s32 height, u8 *lines_out) {
@@ -170,6 +182,16 @@ bool isPieceValid(const PieceState *piece, const u8 *board, s32 width, s32 heigh
 	return true;
 }
 
+inline f32 get_time_to_next_drop(s32 level) {
+
+	if (level > 29) {
+		level = 29;
+	}
+
+	return FRAMES_PER_DROP[level] * (1.0 / 60.0f); //FRAMES_PER_DROP * TARGET_SECONDS_PER_FRAME
+}
+
+
 void mergePiece(GameState *game) {
 	const Tetromino *tetromino = TETROMINOS + game->piece.tetrominoIndex;
 	for (s32 row = 0; row < tetromino->side; row++) {
@@ -187,18 +209,9 @@ void mergePiece(GameState *game) {
 
 void spawnPiece(GameState *game) {
 	game->piece = {};
-
-	game->piece.tetrominoIndex = rand() % 6;
+	game->piece.tetrominoIndex = rand() % 7;
 	game->piece.offsetCol = WIDTH / 2 - 1* WIDTH/4;
-}
-
-inline f32 get_time_to_next_drop(s32 level) {
-	
-	if (level > 29) {
-		level = 29;
-	}
-
-	return FRAMES_PER_DROP[level] * (1.0/60.0f); //FRAMES_PER_DROP * TARGET_SECONDS_PER_FRAME
+	game->next_drop_time = game->time + get_time_to_next_drop(game->level);
 }
 
 inline s32 get_lines_for_next_level(s32 start_level, s32 level) {
@@ -245,6 +258,29 @@ inline s32 getScore(s32 level, s32 line_count) {
 		break;
 	}
 	return 0;
+}
+
+void updateGameover(GameState *game, const InputState *input) {
+	if (input->space > 0) {
+		game->phase = GAME_PHASE_START;
+	}
+}
+
+void updateGamestart(GameState *game, const InputState *input) {
+	if (input->directionUp > 0) {
+		game->start_level++;
+	}
+	if (input->directionDown > 0 && game->start_level > 0) {
+		game->start_level--;
+	}
+	if (input->directionSpace > 0) {
+		memset(game->board, 0, WIDTH * HEIGHT);
+		game->level = game->start_level;
+		game->line_count = 0;
+		game->score = 0;
+		spawnPiece(game);
+		game->phase = GAME_PHASE_PLAY;
+	}
 }
 
 void updateGameline(GameState *game) {
@@ -299,10 +335,9 @@ void updateGameplay(GameState *game, const InputState *input) {
 		game->highlight_end_time = game->time + 0.8f;
 	}
 
-	s32 game_over_row = 0;
-	if (isRowFilled(game->board, WIDTH, game_over_row)) {
+	s32 game_over_row = fmax(0, HEIGHT - VISIBLE_HEIGHT - 1);
+	if (isRowEmpty(game->board, WIDTH, game_over_row)) {
 		game->phase = GAME_PHASE_OVER;
-		SDL_Log("game overrrrrrrrrrrrrrrrrrr");
 	}
 	
 }
@@ -314,6 +349,12 @@ void updateGame(GameState *game, const InputState *input) {
 		break;
 	case GAME_PHASE_LINE:
 		updateGameline(game);
+		break;
+	case GAME_PHASE_START:
+		updateGamestart(game, input);
+		break;
+	case GAME_PHASE_OVER:
+		updateGameover(game, input);
 		break;
 	}
 }
@@ -382,7 +423,7 @@ void renderGame(const GameState *game, SDL_Renderer *renderer) {
 		}
 	}
 	else if (game->phase == GAME_PHASE_OVER) {
-
+		SDL_Log("game overrrrrrrrrrrrrrrrrrr");
 	}
 }
 
