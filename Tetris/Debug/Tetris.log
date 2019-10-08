@@ -1,5 +1,5 @@
 ﻿  Tetris.cpp
-c:\users\toshiba\source\repos\tetris\tetris\tetris.cpp(191): warning C4244: 'return': conversion from 'double' to 'f32', possible loss of data
-c:\users\toshiba\source\repos\tetris\tetris\tetris.cpp(218): warning C4244: 'initializing': conversion from 'double' to 's32', possible loss of data
-c:\users\toshiba\source\repos\tetris\tetris\tetris.cpp(340): warning C4244: 'initializing': conversion from 'double' to 's32', possible loss of data
+c:\users\toshiba\source\repos\tetris\tetris\tetris.cpp(193): warning C4244: 'return': conversion from 'double' to 'f32', possible loss of data
+c:\users\toshiba\source\repos\tetris\tetris\tetris.cpp(220): warning C4244: 'initializing': conversion from 'double' to 's32', possible loss of data
+c:\users\toshiba\source\repos\tetris\tetris\tetris.cpp(338): warning C4244: 'initializing': conversion from 'double' to 's32', possible loss of data
   Tetris.vcxproj -> C:\Users\Toshiba\source\repos\Tetris\Debug\Tetris.exe
