@@ -260,9 +260,10 @@ inline s32 getScore(s32 level, s32 line_count) {
 	return 0;
 }
 
-void updateGameover(GameState *game, const InputState *input) {
+void updateGameover(GameState *game, const InputState *input, bool *intro) {
 	if (input->space > 0) {
 		game->phase = GAME_PHASE_START;
+		intro = false;
 	}
 }
 
@@ -289,7 +290,7 @@ void updateGameline(GameState *game) {
 		game->line_count += game->pending_line_count;
 		game->score += getScore(game->level, game->pending_line_count);
 		s32 lines_for_next_level = get_lines_for_next_level(game->start_level, game->level);
-
+		printf("Your score is %d now!!", game->score);
 		if (game->line_count >= lines_for_next_level) {
 			game->level++;
 		}
@@ -298,9 +299,10 @@ void updateGameline(GameState *game) {
 	}
 }
 
-void updateGameplay(GameState *game, const InputState *input) {
+void updateGameplay(GameState *game, const InputState *input, bool *intro) {
 	if (game->phase == GAME_PHASE_OVER) {
 		SDL_Log("yooooooooooooooooooooo");
+		*intro = true;
 	}
 	PieceState piece = game->piece;
 	if (input->directionLeft > 0) {
@@ -342,10 +344,10 @@ void updateGameplay(GameState *game, const InputState *input) {
 	
 }
 
-void updateGame(GameState *game, const InputState *input) {
+void updateGame(GameState *game, const InputState *input, bool *intro) {
 	switch (game->phase) {
 	case GAME_PHASE_PLAY:
-		updateGameplay(game, input);
+		updateGameplay(game, input, intro);
 		break;
 	case GAME_PHASE_LINE:
 		updateGameline(game);
@@ -354,7 +356,7 @@ void updateGame(GameState *game, const InputState *input) {
 		updateGamestart(game, input);
 		break;
 	case GAME_PHASE_OVER:
-		updateGameover(game, input);
+		updateGameover(game, input, intro);
 		break;
 	}
 }
@@ -371,9 +373,19 @@ void fillRect(SDL_Renderer *renderer, s32 x, s32 y, s32 width, s32 height, Color
 }
 
 void drawCell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x, s32 offset_y) {
-	Color base_color = BASE_COLORS[value];
-	Color light_color = LIGHT_COLORS[value];
-	Color dark_color = DARK_COLORS[value];
+	Color base_color = {};
+	Color light_color = {};
+	Color dark_color = {};
+	if (value == 8) {
+		Color base_color = whiteColor;
+		Color light_color = whiteColor;
+		Color dark_color = whiteColor;
+	}
+	else {
+		Color base_color = BASE_COLORS[value];
+		Color light_color = LIGHT_COLORS[value];
+		Color dark_color = DARK_COLORS[value];
+	}
 
 	s32 edge = GRID_SIZE / 8;
 	s32 x = col * GRID_SIZE + offset_x;
@@ -407,9 +419,27 @@ void drawBoard(SDL_Renderer *renderer, const u8 *board, s32 width, s32 height, s
 	}
 }
 
-void renderGame(const GameState *game, SDL_Renderer *renderer) {
-	drawBoard(renderer, game->board, WIDTH, HEIGHT, 0, 0);
-	drawPiece(renderer, &game->piece, 0, 0);
+void drawIntroText(SDL_Renderer *renderer, const PieceState *piece, s32 offset_x, s32 offset_y) {
+	const Tetromino *tetromino = TETROMINOS + piece->tetrominoIndex;
+	for (s32 row = 0; row < HEIGHT; row++) {
+		for (s32 col = 0; col < WIDTH; col++) {
+			u8 value = getTetromino(tetromino, row, col, piece->rotation);
+			if (value) {
+				drawCell(renderer, row + piece->offsetRow, col + piece->offsetCol, value, offset_x, offset_y);
+			}
+		}
+	}
+}
+
+void renderGame(const GameState *game, SDL_Renderer *renderer, bool *intro) {
+	if (intro) {
+		drawIntroText(renderer, &game->piece, WIDTH, HEIGHT);
+	}
+	else {
+		drawBoard(renderer, game->board, WIDTH, HEIGHT, 0, 0);
+		drawPiece(renderer, &game->piece, 0, 0);
+	}
+	
 
 	if (game->phase == GAME_PHASE_LINE) {
 		for (s32 row = 0; row < HEIGHT; row++) {
@@ -462,7 +492,9 @@ int main(int argc, char* argv[])
 	InputState input = {};
 
 	spawnPiece(&game);
-	game.piece.tetrominoIndex = 0;
+	game.piece.offsetCol = 0;
+	game.piece.tetrominoIndex = 7;
+	bool introText = true;
 
 	bool quit = false;
 	while (!quit) {
@@ -480,8 +512,8 @@ int main(int argc, char* argv[])
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 		SDL_RenderClear(renderer);
 
-		updateGame(&game, &input);
-		renderGame(&game,renderer);
+		updateGame(&game, &input, &introText);
+		renderGame(&game,renderer,&introText);
 
 		SDL_RenderPresent(renderer);
 	}

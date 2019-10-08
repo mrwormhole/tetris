@@ -57,6 +57,42 @@ const u8 TETROMINO_7[] = {
 	0,0,0
 };
 
+const u8 TETROMINO_TETRIS[] = {
+	0,0,0,0,0,0,0,0,
+	8,8,8,0,8,8,8,0,
+	0,8,0,0,8,8,0,0,
+	0,8,0,0,8,8,0,0,
+	0,0,0,0,8,0,8,0,
+	8,8,8,0,0,0,0,0,
+	8,8,0,0,0,8,0,0,
+	8,8,8,0,0,8,0,0,
+	0,0,0,0,0,8,0,0,
+	8,8,8,0,0,0,0,0,
+	0,8,0,0,8,8,8,0,
+	0,8,0,0,8,0,0,0,
+	0,0,0,0,8,8,8,0,
+	0,0,0,0,0,0,8,0,
+	0,0,0,0,8,8,8,0
+};
+
+const u8 TETROMINO_RIS[] = {
+	0,0,0,0,
+	8,8,8,0,
+	8,0,8,0,
+	8,8,0,0,
+	8,0,8,0,
+	0,0,0,0,
+	0,8,0,0,
+	0,8,0,0,
+	0,8,0,0,
+	0,0,0,0,
+	8,8,8,0,
+	8,0,0,0,
+	8,8,8,0,
+	0,0,8,0,
+	8,8,8,0
+};
+
 const Tetromino TETROMINOS[] = {
 	tetromino(TETROMINO_1,4),
 	tetromino(TETROMINO_2,2),
@@ -65,6 +101,7 @@ const Tetromino TETROMINOS[] = {
 	tetromino(TETROMINO_5,3),
 	tetromino(TETROMINO_6,3),
 	tetromino(TETROMINO_7,3),
+	tetromino(TETROMINO_TETRIS,15)
 };
 
 #endif 
