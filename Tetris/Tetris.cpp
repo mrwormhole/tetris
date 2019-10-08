@@ -263,7 +263,7 @@ inline s32 getScore(s32 level, s32 line_count) {
 }
 
 void updateGameover(GameState *game, const InputState *input) {
-	if (input->space > 0) {
+	if (input->directionSpace > 0) {
 		game->phase = GAME_PHASE_START;
 	}
 }
@@ -292,8 +292,10 @@ void updateGameline(GameState *game) {
 		game->score += getScore(game->level, game->pending_line_count);
 		s32 lines_for_next_level = get_lines_for_next_level(game->start_level, game->level);
 		printf("Your score is %d now!! \n", game->score);
+	
 		if (game->line_count >= lines_for_next_level) {
 			game->level++;
+			printf("Current level is %d now!! \n", game->level);
 		}
 
 		game->phase = GAME_PHASE_PLAY;
@@ -332,7 +334,7 @@ void updateGameplay(GameState *game, const InputState *input) {
 	game->pending_line_count = findLines(game->board, WIDTH, HEIGHT, game->lines);
 	if (game->pending_line_count > 0) {
 		game->phase = GAME_PHASE_LINE;
-		game->highlight_end_time = game->time + 0.2f;
+		game->highlight_end_time = game->time + 0.6f;
 	}
 
 	s32 game_over_row = fmax(0, HEIGHT - VISIBLE_HEIGHT - 1);
@@ -370,7 +372,7 @@ void fillRect(SDL_Renderer *renderer, s32 x, s32 y, s32 width, s32 height, Color
 	}
 }
 
-void drawCell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x, s32 offset_y) {
+void drawCell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x, s32 offset_y, bool filled = true) {
 	if (value != 8) {
 		Color base_color = BASE_COLORS[value];
 		Color light_color = LIGHT_COLORS[value];
@@ -380,9 +382,14 @@ void drawCell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x, 
 		s32 x = col * GRID_SIZE + offset_x;
 		s32 y = row * GRID_SIZE + offset_y;
 
-		fillRect(renderer, x, y, GRID_SIZE, GRID_SIZE, dark_color, true);
-		fillRect(renderer, x + edge, y, GRID_SIZE - edge, GRID_SIZE - edge, light_color, true);
-		fillRect(renderer, x + edge, y + edge, GRID_SIZE - edge * 2, GRID_SIZE - edge * 2, base_color, true);
+		if (!filled) {
+			fillRect(renderer, x, y, GRID_SIZE, GRID_SIZE, base_color, false);
+		}
+		else {
+			fillRect(renderer, x, y, GRID_SIZE, GRID_SIZE, dark_color, true);
+			fillRect(renderer, x + edge, y, GRID_SIZE - edge, GRID_SIZE - edge, light_color, true);
+			fillRect(renderer, x + edge, y + edge, GRID_SIZE - edge * 2, GRID_SIZE - edge * 2, base_color, true);
+		}
 	}
 	else {
 		s32 x = col * GRID_SIZE + offset_x;
@@ -393,13 +400,13 @@ void drawCell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x, 
 	
 }
 
-void drawPiece(SDL_Renderer *renderer, const PieceState *piece, s32 offset_x, s32 offset_y) {
+void drawPiece(SDL_Renderer *renderer, const PieceState *piece, s32 offset_x, s32 offset_y, bool filled = true) {
 	const Tetromino *tetromino = TETROMINOS + piece->tetrominoIndex;
 	for (s32 row = 0; row < tetromino->side; row++) {
 		for (s32 col = 0; col < tetromino->side; col++) {
 			u8 value = getTetromino(tetromino, row, col, piece->rotation);
 			if (value) {
-				drawCell(renderer, row + piece->offsetRow, col + piece->offsetCol, value, offset_x, offset_y);
+				drawCell(renderer, row + piece->offsetRow, col + piece->offsetCol, value, offset_x, offset_y, filled);
 			}
 		}
 	}
@@ -427,10 +434,20 @@ void drawIntroText(SDL_Renderer *renderer, const u8 *board, s32 width = INTRO_WI
 	}
 }
 
+void drawHelper(SDL_Renderer *renderer, const GameState* game) {
+	PieceState temp = game->piece;
+	while (isPieceValid(&temp, game->board, WIDTH, HEIGHT)) {
+		temp.offsetRow++;
+	}
+	temp.offsetRow--;
+	drawPiece(renderer, &temp, 0, 0, false);
+}
+
 void renderGame(const GameState *game, SDL_Renderer *renderer) {
-	if (game->phase == GAME_PHASE_PLAY) {
+	if (game->phase == GAME_PHASE_PLAY || game->phase == GAME_PHASE_LINE) {
 		drawBoard(renderer, game->board, WIDTH, HEIGHT, 0, 0);
 		drawPiece(renderer, &game->piece, 0, 0);
+		drawHelper(renderer, game);
 	}
 	if (game->phase == GAME_PHASE_START) {
 		drawIntroText(renderer, TETRIS_TEXT);
