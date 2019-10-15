@@ -66,11 +66,11 @@ struct InputState {
 	u8 down;
 	u8 space;
 
-	s8 directionLeft;
-	s8 directionRight;
-	s8 directionUp;
-	s8 directionDown;
-	s8 directionSpace;
+	s8 diffLeft;
+	s8 diffRight;
+	s8 diffUp;
+	s8 diffDown;
+	s8 diffSpace;
 };
 
 inline u8 getMatrixValue(const u8 *values, s32 width, s32 row, s32 col) {
@@ -263,19 +263,19 @@ inline s32 getScore(s32 level, s32 line_count) {
 }
 
 void updateGameover(GameState *game, const InputState *input) {
-	if (input->directionSpace > 0) {
+	if (input->diffSpace > 0) {
 		game->phase = GAME_PHASE_START;
 	}
 }
 
 void updateGamestart(GameState *game, const InputState *input) {
-	if (input->directionUp > 0) {
+	if (input->diffUp > 0) {
 		game->start_level++;
 	}
-	if (input->directionDown > 0 && game->start_level > 0) {
+	if (input->diffDown > 0 && game->start_level > 0) {
 		game->start_level--;
 	}
-	if (input->directionSpace > 0) {
+	if (input->diffSpace > 0) {
 		memset(game->board, 0, WIDTH * HEIGHT);
 		game->level = game->start_level;
 		game->line_count = 0;
@@ -305,13 +305,13 @@ void updateGameline(GameState *game) {
 void updateGameplay(GameState *game, const InputState *input) {
 
 	PieceState piece = game->piece;
-	if (input->directionLeft > 0) {
+	if (input->diffLeft > 0) {
 		piece.offsetCol--;
 	}
-	if (input->directionRight > 0) {
+	if (input->diffRight > 0) {
 		piece.offsetCol++;
 	}
-	if (input->directionUp > 0) {
+	if (input->diffUp > 0) {
 		piece.rotation = (piece.rotation + 1) % 4;
 	}
 
@@ -319,11 +319,11 @@ void updateGameplay(GameState *game, const InputState *input) {
 		game->piece = piece;
 	}
 
-	if (input->directionDown > 0) {
+	if (input->diffDown > 0) {
 		softDrop(game);
 	}
 
-	if (input->directionSpace > 0) {
+	if (input->diffSpace > 0) {
 		hardDrop(game);
 	}
 
@@ -483,11 +483,11 @@ void registerKeyEvents(InputState *input, bool *quit_out) {
 	input->down = keyStates[SDL_SCANCODE_DOWN];
 	input->space = keyStates[SDL_SCANCODE_SPACE];
 
-	input->directionLeft = input->left - previousInput.left;
-	input->directionRight = input->right - previousInput.right;
-	input->directionUp = input->up - previousInput.up;
-	input->directionDown = input->down - previousInput.down;
-	input->directionSpace = input->space - previousInput.space;
+	input->diffLeft = input->left - previousInput.left;
+	input->diffRight = input->right - previousInput.right;
+	input->diffUp = input->up - previousInput.up;
+	input->diffDown = input->down - previousInput.down;
+	input->diffSpace = input->space - previousInput.space;
 }
 
 int main(int argc, char* argv[])
