@@ -30,7 +30,7 @@ Tetris was firstly coded in Pascal(computer), Turbo Pascal(computer), C(gameboy)
 
 `All rights do belong to The Tetris Company founded by Alexey Pajitnov and Henk Rogers, I do not distribute or sell tetris without the permission of The Tetris Company`
 
-### Kind regards to Alexey Pajitnov(the genius of Legend Arcade Era) and Henk Rogers who is the creator of Tetris on June 6, 1984
+### Kind regards to Henk Rogers and Alexey Pajitnov(the genius of Legend Arcade Era) who is the creator of Tetris on June 6, 1984
 
 ![Alexey-Pajitnov](https://github.com/mrwormhole/tetris/assets/22800416/460ae2ac-ee34-4c76-b22f-c2b1e55fa6fc)
 <br />
