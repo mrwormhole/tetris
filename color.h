@@ -1,10 +1,6 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#include <stdint.h>
-
-typedef uint8_t u8;
-
 typedef struct Color {
 	const u8 red;
 	const u8 green;

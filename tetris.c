@@ -1,14 +1,3 @@
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <math.h>
-
-#include <SDL2/SDL.h>
-
-#include "matrix.h"
 #include "tetris.h"
 
 int main(void) {
@@ -56,7 +45,7 @@ int main(void) {
 }
 
 void input(Game *g, bool *quit_out) {
-	s32 key_count;
+	i32 key_count;
 	const Uint8 *keyStates = SDL_GetKeyboardState(&key_count);
 
 	if (keyStates[SDL_SCANCODE_ESCAPE]) { *quit_out = true; }
@@ -112,10 +101,10 @@ void render(Game *g) {
 		draw_intro_text(renderer, TETRIS_TEXT, INTRO_WIDTH, INTRO_HEIGHT, 0, 0);
 	}
 	if (g_phase == GAME_PHASE_LINE) {
-		for (s32 row = 0; row < HEIGHT; row++) {
+		for (i32 row = 0; row < HEIGHT; row++) {
 			if (g_state->lines[row]) {
-				s32 x = 0;
-				s32 y = row * GRID_SIZE;
+				i32 x = 0;
+				i32 y = row * GRID_SIZE;
 				fill_rect(renderer, x, y, WIDTH * GRID_SIZE, GRID_SIZE, HIGHLIGHT_COLOR, true);
 				fill_rect(renderer, x, y, WIDTH* GRID_SIZE, GRID_SIZE, WHITE_COLOR, false);
 			}
@@ -161,7 +150,7 @@ void update_gameplay(GameState *g_state, InputState *in_state) {
 		g_state->highlight_end_time = g_state->time + 0.6f;
 	}
 
-	s32 game_over_row = fmax(0, HEIGHT - VISIBLE_HEIGHT - 1);
+	i32 game_over_row = fmax(0, HEIGHT - VISIBLE_HEIGHT - 1);
 	if (is_row_empty(g_state->board, WIDTH, game_over_row)) {
 		g_state->phase = GAME_PHASE_OVER;
 	}	
@@ -204,9 +193,9 @@ void update_gameover(GameState *g_state, InputState *in_state) {
 	}
 }
 
-bool is_row_empty(u8 *values, s32 width, s32 row) {
+bool is_row_empty(u8 *values, i32 width, i32 row) {
 	// checks if row has any cell, if yes return true if not returns false
-	for (s32 col = 0; col < width; col++) {
+	for (i32 col = 0; col < width; col++) {
 		if (matrix_value(values, width, row, col)) {
 			return true;
 		}
@@ -214,9 +203,9 @@ bool is_row_empty(u8 *values, s32 width, s32 row) {
 	return false;
 }
 
-bool is_row_filled(u8 *values, s32 width, s32 row) {
+bool is_row_filled(u8 *values, i32 width, i32 row) {
 	// checks if row has a gap, if yes return false, if not returns true
-	for (s32 col = 0; col < width; col++) {
+	for (i32 col = 0; col < width; col++) {
 		if (!matrix_value(values, width, row, col)) {
 			return false;
 		}
@@ -224,9 +213,9 @@ bool is_row_filled(u8 *values, s32 width, s32 row) {
 	return true;
 }
 
-u8 find_lines(u8 *values, s32 width, s32 height, u8 *lines_out) {
+u8 find_lines(u8 *values, i32 width, i32 height, u8 *lines_out) {
 	u8 totalFilledRowOfLines = 0;
-	for (s32 row = 0; row < height; row++) {
+	for (i32 row = 0; row < height; row++) {
 		u8 isFilled = is_row_filled(values,width,row);
 		lines_out[row] = isFilled;
 		totalFilledRowOfLines += isFilled;
@@ -234,9 +223,9 @@ u8 find_lines(u8 *values, s32 width, s32 height, u8 *lines_out) {
 	return totalFilledRowOfLines;
 }
 
-void clear_lines(u8 *values, s32 width, s32 height, u8 *lines) {
-	s32 src_row = height - 1;
-	for (s32 dest_row = height - 1; dest_row >= 0; dest_row--) {
+void clear_lines(u8 *values, i32 width, i32 height, u8 *lines) {
+	i32 src_row = height - 1;
+	for (i32 dest_row = height - 1; dest_row >= 0; dest_row--) {
 		// check upper blocks
 		while (src_row >= 0 && lines[src_row]) {
 			src_row--;
@@ -256,15 +245,15 @@ void clear_lines(u8 *values, s32 width, s32 height, u8 *lines) {
 	}
 }
 
-bool is_piece_valid(Piece *piece, u8 *board, s32 width, s32 height) {
+bool is_piece_valid(Piece *piece, u8 *board, i32 width, i32 height) {
 	const Tetromino *tetromino = TETROMINOS + piece->tetromino_index;
 
-	for (s32 row = 0; row < tetromino->side; row++) {
-		for (s32 col = 0; col < tetromino->side; col++) {
+	for (i32 row = 0; row < tetromino->side; row++) {
+		for (i32 col = 0; col < tetromino->side; col++) {
 			u8 value = tetromino_value(tetromino, row, col, piece->rotation);
 			if (value > 0) {
-				s32 board_row = piece->offset_row + row;
-				s32 board_col = piece->offset_col + col;
+				i32 board_row = piece->offset_row + row;
+				i32 board_col = piece->offset_col + col;
 				if (board_row < 0 || board_row >= height || board_col < 0 || board_col >= width) {
 					return false;
 				}
@@ -286,12 +275,12 @@ void spawn_piece(GameState *g_state) {
 
 void merge_piece(GameState *g_state) {
 	const Tetromino *tetromino = TETROMINOS + g_state->piece.tetromino_index;
-	for (s32 row = 0; row < tetromino->side; row++) {
-		for (s32 col = 0; col < tetromino->side; col++) {
+	for (i32 row = 0; row < tetromino->side; row++) {
+		for (i32 col = 0; col < tetromino->side; col++) {
 			u8 value = tetromino_value(tetromino, row, col, g_state->piece.rotation);
 			if (value) {
-				s32 board_row = g_state->piece.offset_row + row;
-				s32 board_col = g_state->piece.offset_col + col;
+				i32 board_row = g_state->piece.offset_row + row;
+				i32 board_col = g_state->piece.offset_col + col;
 				// we assume everything is in bounds
 				set_matrix_value(g_state->board, WIDTH, board_row, board_col, value);
 			}
@@ -319,7 +308,7 @@ void hard_drop(GameState *g_state) {
 	} while (is_possible);
 }
 
-f32 compute_time_to_next_drop(s32 level) {
+f32 compute_time_to_next_drop(i32 level) {
 	if (level > 29) {
 		level = 29;
 	}
@@ -327,17 +316,17 @@ f32 compute_time_to_next_drop(s32 level) {
 	return FRAMES_PER_DROP[level] * (1.0 / 60.0f); // FRAMES_PER_DROP * TARGET_SECONDS_PER_FRAME
 }
 
-s32 compute_lines_for_next_level(s32 start_level, s32 level) {
-	s32 first_level_up_limit = fmin(start_level * 10 + 10, fmax(100, start_level * 10 - 50));
+i32 compute_lines_for_next_level(i32 start_level, i32 level) {
+	i32 first_level_up_limit = fmin(start_level * 10 + 10, fmax(100, start_level * 10 - 50));
 	if (level == start_level) { 
 		return first_level_up_limit; 
 	}
 
-	s32 diff = level - start_level;
+	i32 diff = level - start_level;
 	return first_level_up_limit + diff * 10;
 }
 
-s32 compute_score(s32 level, s32 line_count) {
+i32 compute_score(i32 level, i32 line_count) {
 	switch (line_count) {
 	case 1:
 		return 40 * (level + 1);
@@ -355,7 +344,7 @@ s32 compute_score(s32 level, s32 line_count) {
 	return 0;
 }
 
-void fill_rect(SDL_Renderer *renderer, s32 x, s32 y, s32 width, s32 height, Color color, bool filled) {
+void fill_rect(SDL_Renderer *renderer, i32 x, i32 y, i32 width, i32 height, Color color, bool filled) {
 	SDL_Rect rect = {x,y,width,height};
 	SDL_SetRenderDrawColor(renderer, color.red, color.green, color.blue, color.alpha);
 	if (filled) {
@@ -366,15 +355,15 @@ void fill_rect(SDL_Renderer *renderer, s32 x, s32 y, s32 width, s32 height, Colo
 	}
 }
 
-void draw_cell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x, s32 offset_y, bool filled) {
+void draw_cell(SDL_Renderer *renderer, i32 row, i32 col, u8 value, i32 offset_x, i32 offset_y, bool filled) {
 	if (value != 8) {
 		Color base_color = BASE_COLORS[value];
 		Color light_color = LIGHT_COLORS[value];
 		Color dark_color = DARK_COLORS[value];
 
-		s32 edge = GRID_SIZE / 8;
-		s32 x = col * GRID_SIZE + offset_x;
-		s32 y = row * GRID_SIZE + offset_y;
+		i32 edge = GRID_SIZE / 8;
+		i32 x = col * GRID_SIZE + offset_x;
+		i32 y = row * GRID_SIZE + offset_y;
 
 		if (!filled) {
 			fill_rect(renderer, x, y, GRID_SIZE, GRID_SIZE, base_color, false);
@@ -386,17 +375,17 @@ void draw_cell(SDL_Renderer *renderer, s32 row, s32 col, u8 value, s32 offset_x,
 		}
 	}
 	else {
-		s32 x = col * GRID_SIZE + offset_x;
-		s32 y = row * GRID_SIZE + offset_y;
+		i32 x = col * GRID_SIZE + offset_x;
+		i32 y = row * GRID_SIZE + offset_y;
 		fill_rect(renderer, x, y, 7 *GRID_SIZE / 8, 7 *GRID_SIZE / 8, CLASSIC_COLORS[rand() % 6], true);
 	}
 	
 }
 
-void draw_piece(SDL_Renderer *renderer, Piece *piece, s32 offset_x, s32 offset_y, bool filled) {
+void draw_piece(SDL_Renderer *renderer, Piece *piece, i32 offset_x, i32 offset_y, bool filled) {
 	const Tetromino *tetromino = TETROMINOS + piece->tetromino_index;
-	for (s32 row = 0; row < tetromino->side; row++) {
-		for (s32 col = 0; col < tetromino->side; col++) {
+	for (i32 row = 0; row < tetromino->side; row++) {
+		for (i32 col = 0; col < tetromino->side; col++) {
 			u8 value = tetromino_value(tetromino, row, col, piece->rotation);
 			if (value) {
 				draw_cell(renderer, row + piece->offset_row, col + piece->offset_col, value, offset_x, offset_y, filled);
@@ -405,9 +394,9 @@ void draw_piece(SDL_Renderer *renderer, Piece *piece, s32 offset_x, s32 offset_y
 	}
 }
 
-void draw_board(SDL_Renderer *renderer, u8 *board, s32 width, s32 height, s32 offset_x, s32 offset_y) {
-	for (s32 row = 0; row < height; row++) {
-		for (s32 col = 0; col < width; col++) {
+void draw_board(SDL_Renderer *renderer, u8 *board, i32 width, i32 height, i32 offset_x, i32 offset_y) {
+	for (i32 row = 0; row < height; row++) {
+		for (i32 col = 0; col < width; col++) {
 			u8 value = matrix_value(board,width,row,col);
 			if (value) {
 				draw_cell(renderer, row, col, value, offset_x, offset_y, true);
@@ -416,9 +405,9 @@ void draw_board(SDL_Renderer *renderer, u8 *board, s32 width, s32 height, s32 of
 	}
 }
 
-void draw_intro_text(SDL_Renderer *renderer, u8 *board, s32 width, s32 height, s32 offset_x, s32 offset_y) {
-	for (s32 row = 0; row < height; row++) {
-		for (s32 col = 0; col < width; col++) {
+void draw_intro_text(SDL_Renderer *renderer, u8 *board, i32 width, i32 height, i32 offset_x, i32 offset_y) {
+	for (i32 row = 0; row < height; row++) {
+		for (i32 col = 0; col < width; col++) {
 			u8 value = matrix_value(board, width, row, col);
 			if (value) {
 				draw_cell(renderer, row, col, value, offset_x, offset_y, true);

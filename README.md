@@ -11,8 +11,7 @@
 
 ### Compile
 
-- `make run`
-- `./tetris` (`PRESS space to start, use only arrow keys and space for hard drop, arrow key up rotates the piece`)
+- `make run` (`PRESS space to start, use only arrow keys and space for hard drop, arrow key up rotates the piece`)
 
 ### Background & Facts
 

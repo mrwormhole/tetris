@@ -1,14 +1,9 @@
 #ifndef TETROMINO_H
 #define TETROMINO_H
 
-#include <stdint.h>
-
-typedef uint8_t u8;
-typedef int32_t s32;
-
 typedef struct Tetromino {
 	const u8 *data;
-	const s32 side;
+	const i32 side;
 } Tetromino;
 
 const u8 TETROMINO_1[] = {
@@ -85,8 +80,8 @@ const Tetromino TETROMINOS[] = {
 	{TETROMINO_7,3},
 };
 
-u8 tetromino_value(const Tetromino *tetromino, s32 row, s32 col, s32 rotation) {
-	s32 side = tetromino->side;
+u8 tetromino_value(const Tetromino *tetromino, i32 row, i32 col, i32 rotation) {
+	i32 side = tetromino->side;
 	switch (rotation)
 	{
 	case 0:
