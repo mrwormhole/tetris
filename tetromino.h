@@ -80,7 +80,7 @@ const Tetromino TETROMINOS[] = {
 	{TETROMINO_7,3},
 };
 
-u8 tetromino_value(const Tetromino *tetromino, i32 row, i32 col, i32 rotation) {
+static inline u8 tetromino_value(const Tetromino *tetromino, i32 row, i32 col, i32 rotation) {
 	i32 side = tetromino->side;
 	switch (rotation)
 	{

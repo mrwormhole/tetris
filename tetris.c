@@ -193,58 +193,6 @@ void update_gameover(GameState *g_state, InputState *in_state) {
 	}
 }
 
-bool is_row_empty(u8 *values, i32 width, i32 row) {
-	// checks if row has any cell, if yes return true if not returns false
-	for (i32 col = 0; col < width; col++) {
-		if (matrix_value(values, width, row, col)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-bool is_row_filled(u8 *values, i32 width, i32 row) {
-	// checks if row has a gap, if yes return false, if not returns true
-	for (i32 col = 0; col < width; col++) {
-		if (!matrix_value(values, width, row, col)) {
-			return false;
-		}
-	}
-	return true;
-}
-
-u8 find_lines(u8 *values, i32 width, i32 height, u8 *lines_out) {
-	u8 totalFilledRowOfLines = 0;
-	for (i32 row = 0; row < height; row++) {
-		u8 isFilled = is_row_filled(values,width,row);
-		lines_out[row] = isFilled;
-		totalFilledRowOfLines += isFilled;
-	}
-	return totalFilledRowOfLines;
-}
-
-void clear_lines(u8 *values, i32 width, i32 height, u8 *lines) {
-	i32 src_row = height - 1;
-	for (i32 dest_row = height - 1; dest_row >= 0; dest_row--) {
-		// check upper blocks
-		while (src_row >= 0 && lines[src_row]) {
-			src_row--;
-		}
-
-		if (src_row < 0) {
-			// in the end, fulfill the last destination cursor with empty
-			memset(values + dest_row * width, 0, width); 
-		}
-		else {
-			if (src_row != dest_row) {
-				// move it from source cursor to destination cursor
-				memcpy(values + dest_row * width, values + src_row * width, width); 
-			}
-			src_row--;
-		}
-	}
-}
-
 bool is_piece_valid(Piece *piece, u8 *board, i32 width, i32 height) {
 	const Tetromino *tetromino = TETROMINOS + piece->tetromino_index;
 
